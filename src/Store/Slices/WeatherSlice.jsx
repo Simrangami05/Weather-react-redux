@@ -24,16 +24,28 @@ export const getCityData = createAsyncThunk("city", async (obj) => {
 
 // get 5days forecast of the city
 
-export const get5DaysForecast = createAsyncThunk
+export const get5DaysForecast = createAsyncThunk("5days", async (obj) => {
+  const request = await axios.get(
+    `${hostName}/data/2.5/forecast?lat=${obj.lat}&lon=${obj.lon}&units=${obj.unit}&APPID=${appId}`
+  );
+  const response = await request.data;
+  return response;
+});
 
 const weatherSlice = createSlice({
   name: "weather",
   initialState: {
     citySearchLoading: false,
     citySearchData: null,
+    forecastLoading: false,
+    forecastData: null,
+    forecastError: null,
   },
   extraReducers: (builder) => {
     builder
+
+      // city search
+
       .addCase(getCityData.pending, (state) => {
         state.citySearchLoading = true;
         state.citySearchData = null;
@@ -41,7 +53,25 @@ const weatherSlice = createSlice({
       .addCase(getCityData.fulfilled, (state, action) => {
         state.citySearchLoading = false;
         state.citySearchData = action.payload;
-      });
+      })
+
+      //forecast
+
+      .addCase(get5DaysForecast.pending, (state) => {
+        state.forecastLoading = true;
+        state.forecastData = null;
+        state.forecastError = null;
+      })
+      .addCase(get5DaysForecast.fulfilled, (state, action) => {
+        state.forecastLoading = false;
+        state.forecastData = action.payload;
+        state.forecastError = null;
+      })
+      .addCase(get5DaysForecast.rejected, (state, action) => {
+        state.forecastLoading = false;
+        state.forecastData = null;
+        state.forecastError = action.error.message;
+      })
   },
 });
 
